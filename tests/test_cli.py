@@ -24,6 +24,22 @@ class CalendarTests(unittest.TestCase):
             with self.subTest(value=value), self.assertRaises(argparse.ArgumentTypeError):
                 calendar_day(value)
 
+    def test_explicit_timezone_not_system_timezone(self):
+        zone = timezone(timedelta(hours=-7))
+        start, end = week_bounds(datetime(2026, 10, 26, 2, tzinfo=timezone.utc), zone)
+        self.assertEqual(start, datetime(2026, 10, 19, 7, tzinfo=timezone.utc))
+        self.assertEqual(end, datetime(2026, 10, 26, 7, tzinfo=timezone.utc))
+
+    def test_dst_week_boundary(self):
+        from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+        try:
+            zone = ZoneInfo("America/New_York")
+        except ZoneInfoNotFoundError:
+            self.skipTest("IANA timezone database unavailable")
+        start, end = week_bounds(datetime(2026, 3, 8, 18, tzinfo=timezone.utc), zone)
+        self.assertEqual(start, datetime(2026, 3, 2, 5, tzinfo=timezone.utc))
+        self.assertEqual(end, datetime(2026, 3, 9, 4, tzinfo=timezone.utc))
+
 
 class CommandTests(unittest.TestCase):
     def setUp(self):

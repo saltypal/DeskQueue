@@ -35,8 +35,8 @@ def week_bounds(now: datetime, zone=None) -> tuple[datetime, datetime]:
     """Convert each local Monday midnight separately (including DST changes)."""
     local_day = now.astimezone(zone).date()
     monday = local_day - timedelta(days=local_day.weekday())
-    start = datetime.combine(monday, time.min).astimezone(zone)
-    end = datetime.combine(monday + timedelta(days=7), time.min).astimezone(zone)
+    start = datetime.combine(monday, time.min, tzinfo=zone).astimezone()
+    end = datetime.combine(monday + timedelta(days=7), time.min, tzinfo=zone).astimezone()
     return start.astimezone(timezone.utc), end.astimezone(timezone.utc)
 
 
@@ -112,8 +112,9 @@ def main(argv=None, *, now: datetime | None = None) -> int:
             print(f"Completed this week: {count}")
         elif args.command == "export":
             # Refuse accidental replacement of an existing export or database.
+            payload = store.export_json()
             with args.file.open("x", encoding="utf-8") as output:
-                output.write(store.export_json())
+                output.write(payload)
                 output.write("\n")
             print(f"Exported to {args.file}")
         elif args.command == "import":
