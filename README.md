@@ -1,7 +1,6 @@
 # DeskQueue
 
-Python-only personal task manager with a local SQLite database. V1 is under development;
-the CLI and storage branches must be integrated before daily use.
+Python-only personal task manager with a local SQLite database.
 
 Scope: capture tasks, date deadlines, priority, tags, open/tag queries, today planning,
 completion, overdue queries, weekly completion count, JSON import/export.
@@ -11,13 +10,13 @@ Runtime: Python 3.11 or newer, standard library only.
 
 ## Development
 
-Install: `python -m pip install -e .`
+Install development tools: `python -m pip install -e ".[dev]"`
 
-Test: `python -m unittest discover -s tests -v`
+Run all tests: `python -m pytest -q`
 
 See `CONTRACT.md` for the agreed integration interface.
 
-## Daily use (after integration)
+## Daily use
 
 ```sh
 python -m pip install .
@@ -48,7 +47,8 @@ Deadlines are dates (YYYY-MM-DD). A task is overdue only after its deadline day.
 `summary` counts completions in the local Monday–Sunday calendar week.
 The system local timezone is the default; `--timezone Asia/Kolkata` selects an IANA
 timezone explicitly. This option needs OS timezone data (or optional `tzdata` on
-systems without it); the default needs no extra package. UTC timestamps are stored
+systems without it: `python -m pip install tzdata`); the default and explicit UTC
+need no extra package. UTC timestamps are stored
 internally. Date deadlines do not shift when timezone changes.
 
 Exports contain all task data and no credentials. Use a new export filename:

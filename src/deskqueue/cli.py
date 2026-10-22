@@ -80,7 +80,8 @@ def main(argv=None, *, now: datetime | None = None) -> int:
 
     store = None
     try:
-        zone = ZoneInfo(args.timezone) if args.timezone else None
+        zone = (timezone.utc if args.timezone == "UTC" else
+                ZoneInfo(args.timezone) if args.timezone else None)
         instant = now if now is not None else datetime.now(timezone.utc)
         if instant.tzinfo is None or instant.utcoffset() is None:
             raise ValueError("clock must be timezone-aware")
