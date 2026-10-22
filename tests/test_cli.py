@@ -96,6 +96,39 @@ class CommandTests(unittest.TestCase):
         self.run_cli("import", str(bad), expected=1)
         self.assertIn("Keep me", self.run_cli("list"))
 
+    def test_week_summary_and_overdue_at_calendar_boundaries(self):
+        import contextlib
+        import io
+        from deskqueue.cli import main
+        from deskqueue.storage import Store
+
+        monday = datetime(2026, 10, 19, tzinfo=timezone.utc)
+        store = Store(self.db)
+        try:
+            for offset in (-1, 0, 6 * 86400, 7 * 86400):
+                instant = monday + timedelta(seconds=offset)
+                task = store.add_task(str(offset), now=instant)
+                store.complete_task(task.id, now=instant)
+            store.add_task("Due today", deadline=monday.date(), now=monday)
+            store.add_task("Due yesterday", deadline=(monday - timedelta(days=1)).date(), now=monday)
+        finally:
+            store.close()
+        def invoke(command):
+            output = io.StringIO()
+            with contextlib.redirect_stdout(output):
+                result = main(["--db", str(self.db), "--timezone", "UTC", command], now=monday)
+            self.assertEqual(result, 0)
+            return output.getvalue()
+        self.assertIn("Completed this week: 2", invoke("summary"))
+        overdue = invoke("overdue")
+        self.assertIn("Due yesterday", overdue)
+        self.assertNotIn("Due today", overdue)
+
+    def test_today_bad_id_does_not_partially_plan(self):
+        task_id = self.add("Leave unplanned")
+        self.run_cli("today", task_id, "missing", expected=1)
+        self.assertEqual(self.run_cli("today"), "No tasks.\n")
+
 
 if __name__ == "__main__":
     unittest.main()
